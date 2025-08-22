@@ -1,0 +1,25 @@
+services:
+  recipe-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: recipe-service
+    command: uvicorn recipe_service:app --host 0.0.0.0 --port 4000
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - ./recipes.db:/app/recipes.db
+
+  auth-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: auth-service
+    command: uvicorn auth_service:app --host 0.0.0.0 --port 5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - ./users.db:/app/users.db
+

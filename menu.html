@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Menu</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    /* Recipe List */
+    #recipe-list {
+      list-style: none;
+      padding: 0;
+      width: 60%;
+      max-width: 600px;
+      margin-bottom: 30px;
+    }
+
+    #recipe-list li {
+      background: #fff;
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #recipe-list li strong {
+      font-size: 16px;
+      color: #444;
+    }
+
+    #recipe-list button {
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #recipe-list button:hover {
+      background: #c0392b;
+    }
+
+    /* Add Recipe Form */
+    #recipe-form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      width: 60%;
+      max-width: 600px;
+    }
+
+    #recipe-form h2 {
+      margin-top: 0;
+      color: #444;
+      text-align: center;
+    }
+
+    #recipe-form label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    #recipe-form input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    #recipe-form button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+      background: #2ecc71;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #recipe-form button:hover {
+      background: #27ae60;
+    }
+  </style>
+</head>
+<body>
+  <h1>🍴 Our Menu</h1>
+
+  <!-- Recipe List -->
+  <ul id="recipe-list">Loading recipes...</ul>
+
+  <!-- Add Recipe Form -->
+  <form id="recipe-form">
+    <h2>Add a Recipe</h2>
+    <label>Dish Name:</label>
+    <input type="text" id="name" required>
+
+    <label>Ingredients (comma separated):</label>
+    <input type="text" id="ingredients" required>
+
+    <button type="submit">➕ Add Recipe</button>
+  </form>
+
+  <script>
+    // Load recipes from backend
+    async function loadRecipes() {
+      try {
+        let res = await fetch("http://127.0.0.1:4000/recipes");
+        let data = await res.json();
+
+        let container = document.getElementById("recipe-list");
+        container.innerHTML = "";
+
+        data.forEach(r => {
+          let li = document.createElement("li");
+          li.innerHTML = `<div><strong>${r.name}</strong><br><small>${r.ingredients.join(", ")}</small></div>`;
+
+          // Delete button
+          let delBtn = document.createElement("button");
+          delBtn.textContent = "❌ Delete";
+          delBtn.onclick = async () => {
+            if (confirm(`Delete recipe "${r.name}"?`)) {
+              await fetch(`http://127.0.0.1:4000/recipes/${r.id}`, { method: "DELETE" });
+              loadRecipes();
+            }
+          };
+
+          li.appendChild(delBtn);
+          container.appendChild(li);
+        });
+      } catch (err) {
+        console.error("Error loading recipes:", err);
+      }
+    }
+
+    // Handle form submit
+    document.getElementById("recipe-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      let name = document.getElementById("name").value;
+      let ingredients = document.getElementById("ingredients").value;
+
+      try {
+        await fetch(`http://127.0.0.1:4000/recipes?name=${encodeURIComponent(name)}&ingredients=${encodeURIComponent(ingredients)}`, {
+          method: "POST"
+        });
+
+        loadRecipes();
+        document.getElementById("recipe-form").reset();
+      } catch (err) {
+        console.error("Error adding recipe:", err);
+      }
+    });
+
+    // Load recipes on page load
+    window.onload = loadRecipes;
+  </script>
+</body>
+</html>
+
